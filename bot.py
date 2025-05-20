@@ -65,7 +65,7 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Todos os rat points foram zerados!")
 
 if __name__ == "__main__":
-    app = ApplicationBuilder().token("7657638421:AAFZjXWUw7SznuxI2L25fqi60MGX2CeW9Is").build()
+    app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("addpoint", add_rat_points))
     app.add_handler(CommandHandler("stats", stats))
     app.add_handler(CommandHandler("reset", reset))
