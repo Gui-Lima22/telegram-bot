@@ -1,8 +1,8 @@
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import json
 import os
 import time
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 TOKEN = os.getenv("BOT_TOKEN")
 DATA_FILE = "data.json"
@@ -10,11 +10,13 @@ GLOBAL_COOLDOWN = 10
 last_executed = 0
 
 
-# Carrega ou cria o arquivo de dados
 def load_data():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            return json.load(f)
+        try:
+            with open(DATA_FILE, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            return {}
     return {}
 
 
@@ -40,28 +42,31 @@ def get_all_points():
 async def add_rat_points(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global last_executed
     now = time.time()
-    if now - last_executed < GLOBAL_COOLDOWN:
-        return
+
     if not context.args:
         await update.message.reply_text("Use: /addpoint <username>")
         return
+
     username = context.args[0]
     points = add_point(username)
     last_executed = now
-    await update.message.reply_text(f"{username} agora tem {points} rat points.")
+
+    if now - last_executed < GLOBAL_COOLDOWN:
+        await update.message.reply_text(f"{username} agora tem {points} rat points.")
+        return
 
 
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(get_all_points())
 
 
-async def main():
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("addpoint", add_rat_points))
-    app.add_handler(CommandHandler("stats", stats))
-    app.run_polling()
-
+async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    save_data({})
+    await update.message.reply_text("Todos os rat points foram zerados!")
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    app = ApplicationBuilder().token("7657638421:AAFZjXWUw7SznuxI2L25fqi60MGX2CeW9Is").build()
+    app.add_handler(CommandHandler("addpoint", add_rat_points))
+    app.add_handler(CommandHandler("stats", stats))
+    app.add_handler(CommandHandler("reset", reset))
+    app.run_polling()
