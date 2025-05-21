@@ -3,19 +3,11 @@ import os
 import time
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-from telegram.ext import Application
-from fastapi import FastAPI, Request
 
 TOKEN = os.getenv("BOT_TOKEN")
 DATA_FILE = "data.json"
 GLOBAL_COOLDOWN = 10
 last_executed = 0
-
-app = FastAPI()
-telegram_app: Application = ApplicationBuilder().token(TOKEN).build()
-
-WEBHOOK_PATH = f"/{TOKEN}"
-WEBHOOK_URL = f"https://telegram-bot-kr3l.onrender.com/{TOKEN}"
 
 
 def load_data():
@@ -73,19 +65,9 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Todos os rat points foram zerados!")
 
 
-@app.post(WEBHOOK_PATH)
-async def telegram_webhook(req: Request):
-    data = await req.json()
-    update = Update.de_json(data, telegram_app.bot)
-    await telegram_app.process_update(update)
-    return {"status": "ok"}
-
-
-@app.on_event("startup")
-async def on_startup():
-    await telegram_app.initialize()
-    # Registra comandos aqui
-    telegram_app.add_handler(CommandHandler("addpoint", add_rat_points))
-    telegram_app.add_handler(CommandHandler("stats", stats))
-    telegram_app.add_handler(CommandHandler("reset", reset))
-    await telegram_app.bot.set_webhook(WEBHOOK_URL)
+if __name__ == "__main__":
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("addpoint", add_rat_points))
+    app.add_handler(CommandHandler("stats", stats))
+    app.add_handler(CommandHandler("reset", reset))
+    app.run_polling()
