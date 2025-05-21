@@ -72,12 +72,7 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_data({})
     await update.message.reply_text("Todos os rat points foram zerados!")
 
-telegram_app.add_handler(CommandHandler("addpoint", add_rat_points))
-telegram_app.add_handler(CommandHandler("stats", stats))
-telegram_app.add_handler(CommandHandler("reset", reset))
 
-
-# Webhook endpoint
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(req: Request):
     data = await req.json()
@@ -86,7 +81,11 @@ async def telegram_webhook(req: Request):
     return {"status": "ok"}
 
 
-# Set webhook on startup
 @app.on_event("startup")
 async def on_startup():
+    await telegram_app.initialize()
+    # Registra comandos aqui
+    telegram_app.add_handler(CommandHandler("addpoint", add_rat_points))
+    telegram_app.add_handler(CommandHandler("stats", stats))
+    telegram_app.add_handler(CommandHandler("reset", reset))
     await telegram_app.bot.set_webhook(WEBHOOK_URL)
