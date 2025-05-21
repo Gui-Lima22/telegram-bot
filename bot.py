@@ -44,7 +44,7 @@ async def add_rat_points(update: Update, context: ContextTypes.DEFAULT_TYPE):
     now = time.time()
 
     if not context.args:
-        await update.message.reply_text("Use: /addpoint <username>")
+        await update.message.reply_text("Usa certo krl: /addpoint @username")
         return
 
     username = context.args[0]
@@ -56,18 +56,42 @@ async def add_rat_points(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
 
+async def remove_rat_point(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text("Usa certo krl: /removepoint @username.")
+        return
+
+    username = context.args[0]
+
+    data = load_data()
+
+    if not data[username]:
+        await update.message.reply_text("Nenhum ponto cadastrado.")
+        return
+
+    data[username] = data.get(username, 0) - 1
+
+    if data[username] == 0:
+        del data[username]
+
+    save_data(data)
+
+    await update.message.reply_text("Ponto removido.")
+
+
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(get_all_points())
 
 
 async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_data({})
-    await update.message.reply_text("Todos os rat points foram zerados!")
+    await update.message.reply_text("Todos os pontos foram zerados!")
 
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("addpoint", add_rat_points))
+    app.add_handler(CommandHandler("removepoint", remove_rat_point))
     app.add_handler(CommandHandler("stats", stats))
     app.add_handler(CommandHandler("reset", reset))
     app.run_polling()
